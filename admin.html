@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+    <meta charset="UTF-8">
+    <title>OwnData Admin - कंट्रोल रूम</title>
+    <style>
+        body { font-family: 'Segoe UI', sans-serif; background: #0f172a; color: white; padding: 20px; }
+        .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px; }
+        .card { background: #1e293b; padding: 20px; border-radius: 15px; border: 1px solid #334155; text-align: center; }
+        .card h2 { color: #f1c40f; margin: 0; font-size: 32px; }
+        .table-container { margin-top: 30px; background: #1e293b; border-radius: 15px; padding: 20px; overflow-x: auto; }
+        table { width: 100%; border-collapse: collapse; text-align: left; }
+        th, td { padding: 12px; border-bottom: 1px solid #334155; }
+        th { color: #38bdf8; }
+        .status-paid { color: #2ecc71; font-weight: bold; }
+    </style>
+</head>
+<body>
+
+    <h1>🚩 OwnData मास्टर कंट्रोल रूम</h1>
+    
+    <div class="grid">
+        <div class="card">
+            <p>कुल एडमिन प्रॉफिट (30%)</p>
+            <h2 id="total-profit">₹ 0.00</h2>
+        </div>
+        <div class="card">
+            <p>सफल ऑटो-पेमेंट</p>
+            <h2 id="total-payouts">0</h2>
+        </div>
+        <div class="card">
+            <p>एक्टिव डेटा पैकेट्स</p>
+            <h2 id="active-vaults">0</h2>
+        </div>
+    </div>
+
+    <div class="table-container">
+        <h3>हालिया पेमेंट इतिहास (Live History)</h3>
+        <table>
+            <thead>
+                <tr>
+                    <th>यूजर</th>
+                    <th>UPI ID</th>
+                    <th>राशि</th>
+                    <th>स्टेटस</th>
+                    <th>समय</th>
+                </tr>
+            </thead>
+            <tbody id="payout-list">
+                </tbody>
+        </table>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/9.15.0/firebase-app.js";
+        import { getFirestore, collection, onSnapshot, query, orderBy } from "https://www.gstatic.com/firebasejs/9.15.0/firebase-firestore.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyBiKNkadH-myaJ2TqxIQ4iVIC7eVt_beoM",
+            authDomain: "owndata-3a3d4.firebaseapp.com",
+            projectId: "owndata-3a3d4",
+            storageBucket: "owndata-3a3d4.firebasestorage.app",
+            messagingSenderId: "940915720247",
+            appId: "1:940915720247:web:61f057e78c3ef7f11ebfb2"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+
+        // 1. एडमिन प्रॉफिट लोड करना
+        onSnapshot(doc(db, "admin_ledger", "hidden_stats"), (doc) => {
+            if (doc.exists()) {
+                document.getElementById('total-profit').innerText = "₹ " + doc.data().totalAdminProfit.toFixed(2);
+            }
+        });
+
+        // 2. पेमेंट लिस्ट और काउंट लोड करना
+        const payoutQuery = query(collection(db, "payout_history"), orderBy("time", "desc"));
+        onSnapshot(payoutQuery, (snapshot) => {
+            const list = document.getElementById('payout-list');
+            list.innerHTML = "";
+            document.getElementById('total-payouts').innerText = snapshot.size;
+
+            snapshot.forEach((doc) => {
+                const data = doc.data();
+                const row = `<tr>
+                    <td>${data.uid.substring(0, 10)}...</td>
+                    <td>${data.upi}</td>
+                    <td>₹${data.amount}</td>
+                    <td class="status-paid">${data.status}</td>
+                    <td>${data.time?.toDate().toLocaleString()}</td>
+                </tr>`;
+                list.innerHTML += row;
+            });
+        });
+
+        // 3. एक्टिव वॉल्ट काउंट
+        onSnapshot(collection(db, "vault"), (snap) => {
+            document.getElementById('active-vaults').innerText = snap.size;
+        });
+    </script>
+</body>
+</html>

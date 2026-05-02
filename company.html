@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>OwnData B2B - Enterprise Portal</title>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/tronweb@5.3.0/dist/TronWeb.js"></script>
+    <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
+    
+    <style>
+        :root { --primary: #38bdf8; --bg: #020617; --card: #1e293b; --yellow: #f1c40f; }
+        body { font-family: 'Segoe UI', sans-serif; background: var(--bg); color: white; padding: 20px; display: flex; justify-content: center; min-height: 100vh; align-items: center; }
+        .business-card { background: var(--card); max-width: 450px; width: 100%; border-radius: 20px; padding: 30px; border: 1px solid #334155; box-shadow: 0 10px 40px rgba(0,0,0,0.5); }
+        h1 { font-size: 26px; margin-bottom: 5px; text-align: center; color: white; }
+        .status-verified { background: rgba(46, 204, 113, 0.2); color: #2ecc71; padding: 5px 12px; border-radius: 20px; font-size: 12px; display: inline-block; margin-bottom: 15px; }
+        .price-box { background: #0f172a; padding: 20px; border-radius: 15px; margin: 20px 0; border: 1px solid #334155; text-align: center; }
+        .pay-btn { background: linear-gradient(135deg, var(--yellow), #f39c12); color: #000; border: none; padding: 18px; width: 100%; border-radius: 12px; font-weight: bold; cursor: pointer; font-size: 16px; transition: 0.3s; }
+        .pay-btn:hover { transform: scale(1.02); box-shadow: 0 5px 20px rgba(241, 196, 15, 0.4); }
+        #unlock-view { margin-top: 20px; padding: 15px; background: #000; color: #2ecc71; border-radius: 10px; display: none; word-break: break-all; font-family: monospace; border: 1px dashed #2ecc71; }
+        .contact-btn { background: transparent; border: 1px solid var(--primary); color: var(--primary); width: 100%; padding: 12px; border-radius: 10px; margin-top: 15px; cursor: pointer; font-weight: 500; }
+        #status-logs { text-align: center; margin-top: 15px; font-size: 14px; color: #94a3b8; }
+        .footer-note { font-size: 11px; color: #64748b; text-align: center; margin-top: 20px; line-height: 1.4; }
+    </style>
+</head>
+<body>
+
+    <div class="business-card">
+        <div style="text-align: center;">
+            <span class="status-verified">✓ Verified & Encrypted Packet</span>
+        </div>
+        <h1>Enterprise Dashboard</h1>
+        <p style="color: #94a3b8; text-align: center; margin-bottom: 20px;">Packet ID: #Guest_Device_164</p>
+
+        <div class="price-box">
+            <span style="color: #94a3b8; font-size: 13px;">Market Value</span>
+            <div style="font-size: 32px; font-weight: bold; color: var(--yellow);">1.20 USDT</div>
+            <p style="font-size: 11px; color: #64748b; margin-top: 5px;">Network: TRC20 (Tron)</p>
+        </div>
+
+        <button class="pay-btn" onclick="buyAndUnlock()">BUY & UNLOCK DATA</button>
+        
+        <div id="status-logs">भुगतान के लिए तैयार...</div>
+
+        <div id="unlock-view">
+            <strong style="color: white;">अनलॉक किया गया डेटा:</strong><br><br>
+            <span id="raw-data-content"></span>
+        </div>
+
+        <button class="contact-btn" onclick="window.location.href='mailto:myindianworkers2026@gmail.com?subject=Data Inquiry #164'">
+            Contact via Email (Official Support)
+        </button>
+
+        <p class="footer-note">
+            For Bulk Data queries, contact us at myindianworkers2026@gmail.com.<br>
+            Response time: Within 2 hours.
+        </p>
+    </div>
+
+    <script>
+        const firebaseConfig = {
+            apiKey: "AIzaSyBiKNkadH-myaJ2TqxIQ4iVIC7eVt_beoM",
+            authDomain: "owndata-3a3d4.firebaseapp.com",
+            projectId: "owndata-3a3d4",
+            storageBucket: "owndata-3a3d4.firebasestorage.app",
+            messagingSenderId: "940915720247",
+            appId: "1:940915720247:web:61f057e78c3ef7f11ebfb2"
+        };
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.firestore();
+
+        (function(){ emailjs.init("KeCKxvKMMJDhyxFv3"); })();
+
+        const adminWallet = "TTmp1q2GbZRoFcm8cMR8veqpiJKqvR7rTo"; 
+
+        async function buyAndUnlock() {
+            const logs = document.getElementById('status-logs');
+            const box = document.getElementById('unlock-view');
+            const content = document.getElementById('raw-data-content');
+
+            try {
+                if(window.tronWeb && window.tronWeb.ready) {
+                    logs.innerText = "ब्लॉकचैन नेटवर्क से कनेक्ट हो रहा है...";
+                    const trc20 = await tronWeb.contract().at("TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t");
+                    const amount = 1.20 * 1e6; 
+
+                    logs.innerText = "कृपया वॉलेट में भुगतान कन्फर्म करें...";
+                    const tx = await trc20.transfer(adminWallet, amount).send();
+
+                    if(tx) {
+                        logs.style.color = "#2ecc71";
+                        logs.innerText = "भुगतान सफल! सूचना भेजी जा रही है...";
+
+                        // रसीद Firebase में सेव करना ताकि Payout के लिए फंड ट्रैक हो सके
+                        await db.collection("payout_funds").add({
+                            packet: "Guest_Device_164",
+                            amount_usdt: 1.20,
+                            tx_id: tx,
+                            timestamp: firebase.firestore.FieldValue.serverTimestamp(),
+                            status: "received"
+                        });
+
+                        sendAutoEmail("Guest_Device_164", tx);
+
+                        const doc = await db.collection("vault").doc("Guest_Device_164").get();
+                        if (doc.exists) {
+                            setTimeout(() => {
+                                box.style.display = "block";
+                                content.innerText = doc.data().data; 
+                                alert("सफलता! डेटा अनलॉक कर दिया गया है।");
+                            }, 1000);
+                        }
+                    }
+                } else {
+                    alert("कृपया TronLink या Trust Wallet ब्राउज़र का उपयोग करें।");
+                }
+            } catch (e) {
+                logs.style.color = "#ef4444";
+                logs.innerText = "भुगतान रद्द या विफल!";
+            }
+        }
+
+        function sendAutoEmail(packet_id, tx_id) {
+            emailjs.send('service_nuxsw6o', 'template_7w1bahs', {
+                packet_info: packet_id,
+                transaction_id: tx_id,
+                to_email: 'myindianworkers2026@gmail.com'
+            });
+        }
+    </script>
+</body>
+</html>
